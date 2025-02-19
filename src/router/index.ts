@@ -6,14 +6,29 @@ const router = createRouter({
     {
       name: 'root',
       path: '/',
-      redirect: '/home',
+      redirect: '/',
       component: () => import('@/layouts/AppLayout.vue'),
       children: [
         {
-          name: 'home',
-          path: 'home',
-          component: () => import('@/pages/home-page/HomePage.vue')
-        }
+          name: 'dashboard',
+          path: '/',
+          component: () => import('@/pages/dashboard/DashboardPage.vue')
+        },
+        {
+          name: 'data-censor',
+          path: 'data-censor',
+          component: () => import('@/pages/data-censor/DataCensor.vue')
+        },
+        {
+          name: 'history',
+          path: 'history',
+          component: () => import('@/pages/history/HistoryPage.vue')
+        },
+        {
+          name: 'profile',
+          path: 'profile',
+          component: () => import('@/pages/profile/ProfilePage.vue')
+        },
       ]
     }
   ],

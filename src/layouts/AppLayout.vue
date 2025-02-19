@@ -1,51 +1,75 @@
 <template>
   <div class="w-screen h-screen">
-    <div class="fixed w-1/8 h-full">
+    <div class="fixed w-1/8 h-full z-50">
       <a-menu
-          style="height: 100%;"
-          mode="inline"
-          theme="dark"
-          :items="items"
+        style="height: 100%;"
+        mode="inline"
+        theme="dark"
+        :selected-keys="selectedKeys"
+        :items="items"
       ></a-menu>
     </div>
-    <RouterView class="w-full h-full pl-1/8 bg-blue-500"/>
+    <div class="w-full h-full pl-[12.5%]">
+      <RouterView />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {h, reactive} from "vue";
+import { h, onMounted, ref } from 'vue'
 import {
   PieChartOutlined,
   DesktopOutlined,
   InboxOutlined,
   ProfileOutlined,
-} from '@ant-design/icons-vue';
-import type {ItemType} from "ant-design-vue";
-import router from "@/router";
+} from '@ant-design/icons-vue'
+import type { ItemType } from 'ant-design-vue'
+import router from '@/router'
+import { useRoute } from 'vue-router'
 
-const items = reactive<ItemType[]>([
+const selectedKeys = ref(['1'])
+const items = ref<ItemType[]>([
   {
-    key: '1',
+    key: 'dashboard',
     icon: () => h(PieChartOutlined),
     label: 'Dashboard',
     onClick: () => {
-      router.push({name: 'home'});
+      selectedKeys.value = ['dashboard']
+      router.push({ name: 'dashboard' })
+    },
+    theme: 'dark',
+  },
+  {
+    key: 'data-censor',
+    icon: () => h(DesktopOutlined),
+    label: 'Data Censor',
+    onClick: () => {
+      selectedKeys.value = ['data-censor']
+      router.push({ name: 'data-censor' })
     },
   },
   {
-    key: '2',
-    icon: () => h(DesktopOutlined),
-    label: 'Option 2',
-  },
-  {
-    key: '3',
+    key: 'history',
     icon: () => h(InboxOutlined),
-    label: 'Option 3',
+    label: 'History',
+    onClick: () => {
+      selectedKeys.value = ['history']
+      router.push({ name: 'history' })
+    },
   },
   {
-    key: '4',
+    key: 'profile',
     icon: () => h(ProfileOutlined),
     label: 'Profile',
+    onClick: () => {
+      selectedKeys.value = ['profile']
+      router.push({ name: 'profile' })
+    },
   },
-]);
+])
+
+onMounted(() => {
+  const currentRoute = useRoute().name
+  selectedKeys.value = [currentRoute as string]
+})
 </script>
