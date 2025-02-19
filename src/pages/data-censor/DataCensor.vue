@@ -113,6 +113,7 @@ function handleSearch() {
     }
     return true
   })
+  displayData.value = displayData.value.map((item, index) => ({ ...item, id: index + 1 }))
 }
 
 function handleReset() {
