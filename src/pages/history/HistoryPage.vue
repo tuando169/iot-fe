@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { DeviceData } from '@/types'
+import { onMounted, ref } from 'vue'
 
 
 const currentPage = ref(1)
 const pageSize = ref(10)
 
-const filter = ref({
-  device: '',
-  date: '',
-})
+const dateFilter = ref('')
 
 
 const columns = [
@@ -22,7 +20,7 @@ const columns = [
     dataIndex: 'device',
     key: 'device',
     sorter: {
-      compare: (a, b) => a.device - b.device,
+      compare: (a: DeviceData, b: DeviceData) => a.device.localeCompare(b.device),
     },
   },
   {
@@ -30,7 +28,7 @@ const columns = [
     dataIndex: 'status',
     key: 'status',
     sorter: {
-      compare: (a, b) => a.status - b.status,
+      compare: (a: DeviceData, b: DeviceData) => a.status.localeCompare(b.status),
     },
   },
   {
@@ -40,7 +38,7 @@ const columns = [
   },
 ]
 
-const displayData = ref([])
+const displayData = ref<DeviceData[]>([])
 const data = ref([
   { device: 'light', status: 'On', time: '2025-02-21 10:00:00' },
   { device: 'air-conditioner', status: 'Off', time: '2025-02-21 10:05:00' },
@@ -74,6 +72,11 @@ const data = ref([
   { device: 'fan', status: 'Off', time: '2025-02-20 12:25:00' },
 ])
 
+onMounted(() => {
+  for (let i = 0; i < 10; i++) {
+    displayData.value.push({ ...data.value[i], id: i + 1 })
+  }
+})
 
 function paginateData(data: any) {
   const start = (currentPage.value - 1) * pageSize.value
@@ -82,47 +85,25 @@ function paginateData(data: any) {
 }
 
 function handleSearch() {
-  console.log(filter.value)
-  displayData.value = data.value.filter((item) => {
-    if (filter.value.device && item.device !== filter.value.device) {
-      return false
-    }
-    if (filter.value.date && item.time.split(' ')[0] !== filter.value.date) {
-      return false
-    }
-    return true
-  })
-  displayData.value = displayData.value.map((item, index) => ({ ...item, id: index + 1 }))
+  displayData.value = displayData.value.filter((item) => item.time.includes(dateFilter.value)).map((item, index) => ({ ...item, id: index + 1 }))
 }
 </script>
 
 <template>
   <div class="pt-10 px-10 h-full w-full">
     <p class="text-3xl font-bold text-center">Lịch sử hoạt động</p>
-    <div class="flex gap-5 mb-5 px-120">
-      <a-select
-        ref="select"
-        v-model:value="filter.device"
-        placeholder="Thiết bị"
-        allow-clear
-        style="width: 100%"
-      >
-        <a-select-option value="light">Đèn</a-select-option>
-        <a-select-option value="fan">Quạt</a-select-option>
-        <a-select-option value="air-conditioner">Điều hoà</a-select-option>
-      </a-select>
-      <a-date-picker v-model:value="filter.date" placeholder="Ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" allow-clear
-                     style="width: 100%"
-      />
-      <a-button type="primary" @click="handleSearch">Tìm kiếm</a-button>
+    <div class="flex gap-5 mb-5 px-140">
+      <a-date-picker v-model:value="dateFilter" placeholder="Ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD"
+        allow-clear style="width: 100%" />
+      <a-button type="primary" :disable="!dateFilter" @click="handleSearch">Tìm kiếm</a-button>
     </div>
     <a-table :columns="columns" :data-source="paginateData(displayData)" :pagination="false" style="">
       <template #bodyCell="{ text, column }">
-        <template v-if="column.dataIndex =='status'">
+        <template v-if="column.dataIndex == 'status'">
           <span v-if="text === 'On'" class="">Bật</span>
           <span v-else class="">Tắt</span>
         </template>
-        <template v-if="column.dataIndex =='device'">
+        <template v-if="column.dataIndex == 'device'">
           <span v-if="text === 'light'" class="">Đèn</span>
           <span v-else-if="text === 'fan'" class="">Quạt</span>
           <span v-else-if="text === 'air-conditioner'" class="">Điều hoà</span>
@@ -130,17 +111,10 @@ function handleSearch() {
       </template>
     </a-table>
     <div class="my-5 float-end">
-      <a-pagination
-        v-show="displayData.length > 0"
-        v-model:current="currentPage"
-        v-model:pageSize="pageSize"
-        show-size-changer
-        :total="displayData.length"
-      />
+      <a-pagination v-show="displayData.length > 0" v-model:current="currentPage" v-model:pageSize="pageSize"
+        show-size-changer :total="displayData.length" />
     </div>
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -1,15 +1,9 @@
 <template>
   <div class="w-screen h-screen">
     <div class="fixed w-1/8 h-full z-50">
-      <a-menu
-        style="height: 100%;"
-        mode="inline"
-        theme="dark"
-        :selected-keys="selectedKeys"
-        :items="items"
-      ></a-menu>
+      <a-menu style="height: 100%;" mode="inline" theme="dark" :selected-keys="selectedKeys" :items="items"></a-menu>
     </div>
-    <div class="w-full h-full pl-[12.5%]">
+    <div class="w-full h-full pl-[12.5%] overflow-x-auto">
       <RouterView />
     </div>
   </div>

@@ -17,7 +17,7 @@ const router = createRouter({
         {
           name: 'data-censor',
           path: 'data-censor',
-          component: () => import('@/pages/data-censor/DataCensor.vue')
+          component: () => import('@/pages/data-sensor/DataSensor.vue')
         },
         {
           name: 'history',

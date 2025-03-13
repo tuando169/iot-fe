@@ -1,13 +1,18 @@
 <script setup lang="ts">
+import type { SensorData } from '@/types'
+import { notification } from 'ant-design-vue'
 import { ref } from 'vue'
+
 
 const currentPage = ref(1)
 const pageSize = ref(10)
 
-const filter = ref({
-  temperature: '',
-  humidity: '',
-  light: '',
+const filter = ref<{
+  value: string
+  type: string | undefined
+}>({
+  value: '',
+  type: undefined,
 })
 
 const columns = [
@@ -21,7 +26,7 @@ const columns = [
     dataIndex: 'temperature',
     key: 'temperature',
     sorter: {
-      compare: (a, b) => a.temperature - b.temperature,
+      compare: (a: SensorData, b: SensorData) => a.temperature - b.temperature,
     },
   },
   {
@@ -29,7 +34,7 @@ const columns = [
     dataIndex: 'humidity',
     key: 'humidity',
     sorter: {
-      compare: (a, b) => a.humidity - b.humidity,
+      compare: (a: SensorData, b: SensorData) => a.humidity - b.humidity,
     },
   },
   {
@@ -37,7 +42,7 @@ const columns = [
     dataIndex: 'light',
     key: 'light',
     sorter: {
-      compare: (a, b) => a.light - b.light,
+      compare: (a: SensorData, b: SensorData) => a.light - b.light,
     },
   },
   {
@@ -45,7 +50,7 @@ const columns = [
     dataIndex: 'time',
     key: 'time',
     sorter: {
-      compare: (a, b) => a.time - b.time,
+      compare: (a: SensorData, b: SensorData) => a.time.localeCompare(b.time),
     },
   },
 ]
@@ -92,7 +97,7 @@ const data = ref([
   { temperature: 69, humidity: 89, light: 139, time: '2021-10-10 10:10:49' },
   { temperature: 70, humidity: 90, light: 140, time: '2021-10-10 10:10:50' },
 ])
-const displayData = ref(data.value.map((item, index) => ({ ...item, id: index + 1 })))
+const displayData = ref<SensorData[]>(data.value.map((item, index) => ({ ...item, id: index + 1 })))
 
 function paginateData(data: any) {
   const start = (currentPage.value - 1) * pageSize.value
@@ -101,26 +106,19 @@ function paginateData(data: any) {
 }
 
 function handleSearch() {
-  displayData.value = data.value.filter((item) => {
-    if (filter.value.temperature && item.temperature !== parseInt(filter.value.temperature)) {
-      return false
-    }
-    if (filter.value.humidity && item.humidity !== parseInt(filter.value.humidity)) {
-      return false
-    }
-    if (filter.value.light && item.light !== parseInt(filter.value.light)) {
-      return false
-    }
-    return true
-  })
+  if (filter.value.type) {
+    displayData.value = data.value
+      .filter((item) => filter.value.type && item[filter.value.type as keyof typeof item].toString().includes(filter.value.value))
+      .map((item, index) => ({ ...item, id: index + 1 }))
+  }
   displayData.value = displayData.value.map((item, index) => ({ ...item, id: index + 1 }))
 }
 
+
 function handleReset() {
   filter.value = {
-    temperature: '',
-    humidity: '',
-    light: '',
+    value: '',
+    type: undefined,
   }
   displayData.value = data.value.map((item, index) => ({ ...item, id: index + 1 }))
 }
@@ -130,37 +128,24 @@ function handleReset() {
   <div class="pt-10 px-10 h-full w-full">
     <p class="text-3xl font-bold text-center">Dữ liệu cảm biến</p>
     <div class="flex gap-5 mb-5 px-120">
-      <a-input v-model:value="filter.temperature" placeholder="Nhiệt độ">
-        <template #suffix>
-          °C
-        </template>
+      <a-select ref="select" v-model:value="filter.type" placeholder="Cột" style="width: 100%">
+        <a-select-option value="temperature">Nhiệt độ (°C)</a-select-option>
+        <a-select-option value="humidity">Độ ẩm (%)</a-select-option>
+        <a-select-option value="light">Ánh sáng (lux)</a-select-option>
+        <a-select-option value="time">Thời gian</a-select-option>
+      </a-select>
+      <a-input v-model:value="filter.value" placeholder="Giá trị">
       </a-input>
-      <a-input v-model:value="filter.humidity" placeholder="Độ ẩm">
-        <template #suffix>
-          %
-        </template>
-      </a-input>
-      <a-input v-model:value="filter.light" placeholder="Ánh sáng">
-        <template #suffix>
-          lux
-        </template>
-      </a-input>
-      <a-button type="primary" @click="handleSearch">Tìm kiếm</a-button>
+      <a-button type="primary" :disabled="!filter.type" @click="handleSearch">Tìm kiếm</a-button>
       <a-button type="default" @click="handleReset">Làm mới</a-button>
     </div>
     <a-table :columns="columns" :data-source="paginateData(displayData)" :pagination="false" style="">
     </a-table>
-    <div class="my-5 float-end">
-      <a-pagination
-        v-model:current="currentPage"
-        v-model:pageSize="pageSize"
-        show-size-changer
-        :total="displayData.length"
-      />
+    <div class="py-5 float-end">
+      <a-pagination v-model:current="currentPage" v-model:pageSize="pageSize" show-size-changer
+        :total="displayData.length" />
     </div>
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>
