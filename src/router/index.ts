@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory} from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -12,25 +12,25 @@ const router = createRouter({
         {
           name: 'dashboard',
           path: '/',
-          component: () => import('@/pages/dashboard/DashboardPage.vue')
+          component: () => import('@/pages/dashboard/DashboardPage.vue'),
         },
         {
-          name: 'data-censor',
-          path: 'data-censor',
-          component: () => import('@/pages/data-sensor/DataSensor.vue')
+          name: 'data-sensor',
+          path: 'sensor',
+          component: () => import('@/pages/data-sensor/DataSensor.vue'),
         },
         {
           name: 'history',
           path: 'history',
-          component: () => import('@/pages/history/HistoryPage.vue')
+          component: () => import('@/pages/history/DeviceHistory.vue'),
         },
         {
           name: 'profile',
           path: 'profile',
-          component: () => import('@/pages/profile/ProfilePage.vue')
+          component: () => import('@/pages/profile/ProfilePage.vue'),
         },
-      ]
-    }
+      ],
+    },
   ],
 })
 

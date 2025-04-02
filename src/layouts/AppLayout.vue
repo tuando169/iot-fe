@@ -34,12 +34,12 @@ const items = ref<ItemType[]>([
     theme: 'dark',
   },
   {
-    key: 'data-censor',
+    key: 'data-sensor',
     icon: () => h(DesktopOutlined),
-    label: 'Data Censor',
+    label: 'Data Sensor',
     onClick: () => {
-      selectedKeys.value = ['data-censor']
-      router.push({ name: 'data-censor' })
+      selectedKeys.value = ['data-sensor']
+      router.push({ name: 'data-sensor' })
     },
   },
   {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SensorData } from '@/types'
+import type { SensorData } from '@/common/types'
 import { notification } from 'ant-design-vue'
 import { ref } from 'vue'
 

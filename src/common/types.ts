@@ -6,9 +6,15 @@ export interface SensorData {
   time: string
 }
 
-export interface DeviceData {
+export interface DeviceHistoryData {
   id: number
   device: string
-  status: string
+  state: string
   time: string
+}
+
+export interface DeviceHistoryUploadData {
+  page: number
+  pageSize: number
+  date?: string
 }
