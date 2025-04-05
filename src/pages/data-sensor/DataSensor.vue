@@ -1,126 +1,59 @@
 <script setup lang="ts">
-import type { SensorData } from '@/common/types'
+import { apis } from '@/common/apis'
+import type { ISensorData, ISensorDataQuery } from '@/common/types'
 import { notification } from 'ant-design-vue'
-import { ref } from 'vue'
+import axios from 'axios'
+import { onMounted, ref } from 'vue'
 
 
-const currentPage = ref(1)
-const pageSize = ref(10)
-
-const filter = ref<{
-  value: string
-  type: string | undefined
-}>({
-  value: '',
-  type: undefined,
+const queryParams = ref<ISensorDataQuery>({
+  page: 1,
+  pageSize: 10,
+  filterBy: undefined,
+  filterValue: undefined,
+  sortBy: undefined,
+  sortOrder: undefined,
 })
 
-const columns = [
-  {
-    title: 'STT',
-    dataIndex: 'id',
-    key: 'id',
-  },
-  {
-    title: 'Nhiệt độ',
-    dataIndex: 'temperature',
-    key: 'temperature',
-    sorter: {
-      compare: (a: SensorData, b: SensorData) => a.temperature - b.temperature,
-    },
-  },
-  {
-    title: 'Độ ẩm',
-    dataIndex: 'humidity',
-    key: 'humidity',
-    sorter: {
-      compare: (a: SensorData, b: SensorData) => a.humidity - b.humidity,
-    },
-  },
-  {
-    title: 'Ánh sáng',
-    dataIndex: 'light',
-    key: 'light',
-    sorter: {
-      compare: (a: SensorData, b: SensorData) => a.light - b.light,
-    },
-  },
-  {
-    title: 'Thời gian',
-    dataIndex: 'time',
-    key: 'time',
-    sorter: {
-      compare: (a: SensorData, b: SensorData) => a.time.localeCompare(b.time),
-    },
-  },
-]
-const data = ref([
-  { temperature: 30, humidity: 50, light: 100, time: '2021-10-10 10:10:10' },
-  { temperature: 31, humidity: 51, light: 101, time: '2021-10-10 10:10:11' },
-  { temperature: 32, humidity: 52, light: 102, time: '2021-10-10 10:10:12' },
-  { temperature: 33, humidity: 53, light: 103, time: '2021-10-10 10:10:13' },
-  { temperature: 34, humidity: 54, light: 104, time: '2021-10-10 10:10:14' },
-  { temperature: 35, humidity: 55, light: 105, time: '2021-10-10 10:10:15' },
-  { temperature: 36, humidity: 56, light: 106, time: '2021-10-10 10:10:16' },
-  { temperature: 37, humidity: 57, light: 107, time: '2021-10-10 10:10:17' },
-  { temperature: 38, humidity: 58, light: 108, time: '2021-10-10 10:10:18' },
-  { temperature: 39, humidity: 59, light: 109, time: '2021-10-10 10:10:19' },
-  { temperature: 40, humidity: 60, light: 110, time: '2021-10-10 10:10:20' },
-  { temperature: 41, humidity: 61, light: 111, time: '2021-10-10 10:10:21' },
-  { temperature: 42, humidity: 62, light: 112, time: '2021-10-10 10:10:22' },
-  { temperature: 43, humidity: 63, light: 113, time: '2021-10-10 10:10:23' },
-  { temperature: 44, humidity: 64, light: 114, time: '2021-10-10 10:10:24' },
-  { temperature: 45, humidity: 65, light: 115, time: '2021-10-10 10:10:25' },
-  { temperature: 46, humidity: 66, light: 116, time: '2021-10-10 10:10:26' },
-  { temperature: 47, humidity: 67, light: 117, time: '2021-10-10 10:10:27' },
-  { temperature: 48, humidity: 68, light: 118, time: '2021-10-10 10:10:28' },
-  { temperature: 49, humidity: 69, light: 119, time: '2021-10-10 10:10:29' },
-  { temperature: 50, humidity: 70, light: 120, time: '2021-10-10 10:10:30' },
-  { temperature: 51, humidity: 71, light: 121, time: '2021-10-10 10:10:31' },
-  { temperature: 52, humidity: 72, light: 122, time: '2021-10-10 10:10:32' },
-  { temperature: 53, humidity: 73, light: 123, time: '2021-10-10 10:10:33' },
-  { temperature: 54, humidity: 74, light: 124, time: '2021-10-10 10:10:34' },
-  { temperature: 55, humidity: 75, light: 125, time: '2021-10-10 10:10:35' },
-  { temperature: 56, humidity: 76, light: 126, time: '2021-10-10 10:10:36' },
-  { temperature: 57, humidity: 77, light: 127, time: '2021-10-10 10:10:37' },
-  { temperature: 58, humidity: 78, light: 128, time: '2021-10-10 10:10:38' },
-  { temperature: 59, humidity: 79, light: 129, time: '2021-10-10 10:10:39' },
-  { temperature: 60, humidity: 80, light: 130, time: '2021-10-10 10:10:40' },
-  { temperature: 61, humidity: 81, light: 131, time: '2021-10-10 10:10:41' },
-  { temperature: 62, humidity: 82, light: 132, time: '2021-10-10 10:10:42' },
-  { temperature: 63, humidity: 83, light: 133, time: '2021-10-10 10:10:43' },
-  { temperature: 64, humidity: 84, light: 134, time: '2021-10-10 10:10:44' },
-  { temperature: 65, humidity: 85, light: 135, time: '2021-10-10 10:10:45' },
-  { temperature: 66, humidity: 86, light: 136, time: '2021-10-10 10:10:46' },
-  { temperature: 67, humidity: 87, light: 137, time: '2021-10-10 10:10:47' },
-  { temperature: 68, humidity: 88, light: 138, time: '2021-10-10 10:10:48' },
-  { temperature: 69, humidity: 89, light: 139, time: '2021-10-10 10:10:49' },
-  { temperature: 70, humidity: 90, light: 140, time: '2021-10-10 10:10:50' },
-])
-const displayData = ref<SensorData[]>(data.value.map((item, index) => ({ ...item, id: index + 1 })))
+const sensorData = ref<ISensorData[]>([])
 
-function paginateData(data: any) {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = currentPage.value * pageSize.value
-  return data.slice(start, end)
-}
+onMounted(async () => {
+  await fetchData()
+})
 
-function handleSearch() {
-  if (filter.value.type) {
-    displayData.value = data.value
-      .filter((item) => filter.value.type && item[filter.value.type as keyof typeof item].toString().includes(filter.value.value))
-      .map((item, index) => ({ ...item, id: index + 1 }))
+async function fetchData(pagination?: any, filters?: any, sorter?: any) {
+  if (sorter) {
+    queryParams.value.sortBy = sorter.field
+    queryParams.value.sortOrder = sorter.order === 'ascend' ? 'ASC' : 'DESC'
+  } else {
+    queryParams.value.sortBy = undefined
+    queryParams.value.sortOrder = undefined
   }
-  displayData.value = displayData.value.map((item, index) => ({ ...item, id: index + 1 }))
-}
 
+  try {
+    const res = await axios.get(apis.sensor.getAll, {
+      params: queryParams.value,
+    })
+    console.log('sensorData', sensorData.value);
+    sensorData.value = res.data.sensors
+
+  } catch (error) {
+    notification.error({
+      message: 'Lỗi',
+      description: 'Không thể tải dữ liệu cảm biến',
+    })
+  }
+
+}
 
 function handleReset() {
-  filter.value = {
-    value: '',
-    type: undefined,
-  }
-  displayData.value = data.value.map((item, index) => ({ ...item, id: index + 1 }))
+  queryParams.value.page = 1
+  queryParams.value.pageSize = 10
+  queryParams.value.filterBy = undefined
+  queryParams.value.filterValue = undefined
+  queryParams.value.sortBy = undefined
+  queryParams.value.sortOrder = undefined
+  fetchData()
 }
 </script>
 
@@ -128,22 +61,32 @@ function handleReset() {
   <div class="pt-10 px-10 h-full w-full">
     <p class="text-3xl font-bold text-center">Dữ liệu cảm biến</p>
     <div class="flex gap-5 mb-5 px-120">
-      <a-select ref="select" v-model:value="filter.type" placeholder="Cột" style="width: 100%">
+      <a-select ref="select" v-model:value="queryParams.filterBy" placeholder="Cột" style="width: 100%">
         <a-select-option value="temperature">Nhiệt độ (°C)</a-select-option>
         <a-select-option value="humidity">Độ ẩm (%)</a-select-option>
         <a-select-option value="light">Ánh sáng (lux)</a-select-option>
         <a-select-option value="time">Thời gian</a-select-option>
       </a-select>
-      <a-input v-model:value="filter.value" placeholder="Giá trị">
+      <a-input v-model:value="queryParams.filterValue" placeholder="Giá trị">
       </a-input>
-      <a-button type="primary" :disabled="!filter.type" @click="handleSearch">Tìm kiếm</a-button>
+      <a-button type="primary" :disabled="!queryParams.filterBy || !queryParams.filterValue" @click="fetchData">
+        Tìm kiếm</a-button>
       <a-button type="default" @click="handleReset">Làm mới</a-button>
     </div>
-    <a-table :columns="columns" :data-source="paginateData(displayData)" :pagination="false" style="">
+    <a-table :data-source="sensorData" stripe bordered :pagination="false" @change="fetchData">
+      <a-table-column title="ID">
+        <template #default="props">
+          <span>{{ props.index + 1 }}</span>
+        </template>
+      </a-table-column>
+      <a-table-column title="Nhiệt độ (°C)" data-index="temperature" :sorter="true" />
+      <a-table-column title="Độ ẩm (%)" data-index="humidity" :sorter="true" />
+      <a-table-column title="Ánh sáng (lux)" data-index="light" :sorter="true" />
+      <a-table-column title="Thời gian" data-index="time" :sorter="true" />
     </a-table>
     <div class="py-5 float-end">
-      <a-pagination v-model:current="currentPage" v-model:pageSize="pageSize" show-size-changer
-        :total="displayData.length" />
+      <a-pagination v-model:current="queryParams.page" v-model:pageSize="queryParams.pageSize" show-size-changer
+        :total="sensorData.length" @change="fetchData" />
     </div>
   </div>
 </template>

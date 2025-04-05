@@ -1,12 +1,12 @@
 const baseUrl = 'http://localhost:8000'
 export const apis = {
-  deviceHistory: {
+  device: {
     getAll: baseUrl + '/device',
+    getStatus: baseUrl + '/device/status',
+    toggle: baseUrl + '/device/toggle',
   },
-  sensorData: {
+  sensor: {
     getAll: baseUrl + '/sensor',
-  },
-  toogle: {
-    device: baseUrl + '/toggle',
+    getLatest: baseUrl + '/sensor/latest',
   },
 }

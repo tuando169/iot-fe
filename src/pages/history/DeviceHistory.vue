@@ -1,143 +1,83 @@
 <script setup lang="ts">
 import { apis } from '@/common/apis'
-import type { DeviceHistoryData, DeviceHistoryUploadData } from '@/common/types'
+import type { IDeviceHistory, IDeviceHistoryQuery } from '@/common/types'
 import axios from 'axios'
 import { onMounted, ref } from 'vue'
 
 
-const currentPage = ref(1)
-const pageSize = ref(10)
-
-const dateFilter = ref('')
 
 
-const columns = [
-  {
-    title: 'ID',
-    dataIndex: 'index',
-    key: 'index',
-  },
-  {
-    title: 'Thiết bị',
-    dataIndex: 'device',
-    key: 'device',
-    sorter: {
-      compare: (a: DeviceHistoryData, b: DeviceHistoryData) => a.device.localeCompare(b.device),
-    },
-  },
-  {
-    title: 'Trạng thái',
-    dataIndex: 'status',
-    key: 'status',
-    sorter: {
-      compare: (a: DeviceHistoryData, b: DeviceHistoryData) => a.state.localeCompare(b.state),
-    },
-  },
-  {
-    title: 'Thời gian',
-    dataIndex: 'time',
-    key: 'time',
-  },
-]
+const queryParams = ref<IDeviceHistoryQuery>({
+  page: 1,
+  pageSize: 10,
+  date: undefined,
+  sortBy: undefined,
+  sortOrder: undefined,
+})
 
-const displayData = ref<Array<DeviceHistoryData & {
-  index: number
-}>>([])
-const data = ref<DeviceHistoryData[]>([])
-// const data = ref([
-//   { device: 'light', status: 'On', time: '2025-02-21 10:00:00' },
-//   { device: 'air-conditioner', status: 'Off', time: '2025-02-21 10:05:00' },
-//   { device: 'fan', status: 'On', time: '2025-02-21 10:10:00' },
-//   { device: 'light', status: 'Off', time: '2025-02-21 10:15:00' },
-//   { device: 'air-conditioner', status: 'On', time: '2025-02-21 10:20:00' },
-//   { device: 'fan', status: 'Off', time: '2025-02-21 10:25:00' },
-//   { device: 'light', status: 'On', time: '2025-02-21 10:30:00' },
-//   { device: 'air-conditioner', status: 'Off', time: '2025-02-21 10:35:00' },
-//   { device: 'fan', status: 'On', time: '2025-02-21 10:40:00' },
-//   { device: 'light', status: 'Off', time: '2025-02-21 10:45:00' },
-//   { device: 'air-conditioner', status: 'On', time: '2025-02-20 10:50:00' },
-//   { device: 'fan', status: 'Off', time: '2025-02-20 10:55:00' },
-//   { device: 'light', status: 'On', time: '2025-02-20 11:00:00' },
-//   { device: 'air-conditioner', status: 'Off', time: '2025-02-20 11:05:00' },
-//   { device: 'fan', status: 'On', time: '2025-02-20 11:10:00' },
-//   { device: 'light', status: 'Off', time: '2025-02-20 11:15:00' },
-//   { device: 'air-conditioner', status: 'On', time: '2025-02-20 11:20:00' },
-//   { device: 'fan', status: 'Off', time: '2025-02-20 11:25:00' },
-//   { device: 'light', status: 'On', time: '2025-02-20 11:30:00' },
-//   { device: 'air-conditioner', status: 'Off', time: '2025-02-20 11:35:00' },
-//   { device: 'fan', status: 'On', time: '2025-02-20 11:40:00' },
-//   { device: 'light', status: 'Off', time: '2025-02-20 11:45:00' },
-//   { device: 'air-conditioner', status: 'On', time: '2025-02-20 11:50:00' },
-//   { device: 'fan', status: 'Off', time: '2025-02-20 11:55:00' },
-//   { device: 'light', status: 'On', time: '2025-02-20 12:00:00' },
-//   { device: 'air-conditioner', status: 'Off', time: '2025-02-20 12:05:00' },
-//   { device: 'fan', status: 'On', time: '2025-02-20 12:10:00' },
-//   { device: 'light', status: 'Off', time: '2025-02-20 12:15:00' },
-//   { device: 'air-conditioner', status: 'On', time: '2025-02-20 12:20:00' },
-//   { device: 'fan', status: 'Off', time: '2025-02-20 12:25:00' },
-// ])
+
+const deviceHistory = ref<IDeviceHistory[]>([])
 
 onMounted(async () => {
   await fetchData()
 })
 
-async function fetchData() {
-  try {
-    const query: DeviceHistoryUploadData = {
-      page: currentPage.value,
-      pageSize: pageSize.value,
-    }
-    if (dateFilter.value) {
-      query.date = dateFilter.value
-    }
+async function fetchData(pagination?: any, filters?: any, sorter?: any) {
+  if (sorter) {
+    queryParams.value.sortBy = sorter.field
+    queryParams.value.sortOrder = sorter.order === 'ascend' ? 'ASC' : 'DESC'
+  } else {
+    queryParams.value.sortBy = undefined
+    queryParams.value.sortOrder = undefined
+  }
 
-    const res = await axios.get(apis.deviceHistory.getAll,
+  try {
+
+    const res = await axios.get(apis.device.getAll,
       {
-        params: query,
+        params: queryParams.value,
       }
     )
-    data.value = res.data.devices
-    displayData.value = data.value.map((item, index) => ({ ...item, index: index + 1 }))
+    deviceHistory.value = res.data.devices
   } catch (error) {
     console.error('Error fetching data:', error)
   }
 }
 
-function paginateData(data: any) {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = currentPage.value * pageSize.value
-  return data.slice(start, end)
-}
-
-function handleSearch() {
-  displayData.value = displayData.value.filter((item) => item.time.includes(dateFilter.value)).map((item, index) => ({ ...item, id: index + 1 }))
-}
 </script>
 
 <template>
   <div class="pt-10 px-10 h-full w-full">
     <p class="text-3xl font-bold text-center">Lịch sử hoạt động</p>
     <div class="flex gap-5 mb-5 px-140">
-      <a-date-picker v-model:value="dateFilter" placeholder="Ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD"
+      <a-date-picker v-model:value="queryParams.date" placeholder="Ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD"
         allow-clear style="width: 100%" />
-      <a-button type="primary" :disable="!dateFilter" @click="fetchData">Tìm kiếm</a-button>
+      <a-button type="primary" :disable="!queryParams.date" @click="fetchData">Tìm kiếm</a-button>
     </div>
-    <a-table :columns="columns" :data-source="paginateData(displayData)" :pagination="false" style="">
-      <template #bodyCell="{ text, column }">
-        <template v-if="column.dataIndex == 'status'">
-          <span v-if="text === 'On'" class="">Bật</span>
-          <span v-else class="">Tắt</span>
+    <a-table :data-source="deviceHistory" :pagination="false" @change="fetchData">
+      <a-table-column title="ID" width="100">
+        <template #default="props">
+          <span>{{ props.index + 1 }}</span>
         </template>
-        <template v-if="column.dataIndex == 'device'">
-          <span v-if="text === 'light'" class="">Đèn</span>
-          <span v-else-if="text === 'fan'" class="">Quạt</span>
-          <span v-else-if="text === 'air-conditioner'" class="">Điều hoà</span>
+      </a-table-column>
+      <a-table-column title="Tên thiết bị" data-index="device" width="200" :sorter="true">
+        <template #default="{ record }">
+          <span v-if="record.device === 'light'" class="">Đèn</span>
+          <span v-else-if="record.device === 'fan'" class="">Quạt</span>
+          <span v-else-if="record.device === 'air-conditioner'" class="">Điều hoà</span>
         </template>
-      </template>
+      </a-table-column>
+      <a-table-column title="Trạng thái" data-index="state" width="200" :sorter="true">
+        <template #default="{ record }">
+          <span :class="[record.state ? 'text-green-700' : 'text-red-700']">{{ record.state ? 'Bật' : 'Tắt'
+          }}</span>
+        </template>
+      </a-table-column>
+      <a-table-column title="Thời gian" data-index="time" :sorter="true" />
     </a-table>
-    <div class="my-5 float-end">
-      <a-pagination v-show="displayData.length > 0" v-model:current="currentPage" v-model:pageSize="pageSize"
-        show-size-changer :total="displayData.length" />
+    <div class="py-5 float-end">
+      <a-pagination v-model:current="queryParams.page" v-model:pageSize="queryParams.pageSize" show-size-changer
+        :total="deviceHistory.length" @change="fetchData" />
     </div>
   </div>
 </template>
