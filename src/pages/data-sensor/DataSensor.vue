@@ -1,59 +1,58 @@
 <script setup lang="ts">
-import { apis } from '@/common/apis'
-import type { ISensorData, ISensorDataQuery } from '@/common/types'
-import { notification } from 'ant-design-vue'
-import axios from 'axios'
-import { onMounted, ref } from 'vue'
+import { apis } from '@/common/apis';
+import type { ISensorData, ISensorDataQuery } from '@/common/types';
+import { notification } from 'ant-design-vue';
+import axios from 'axios';
+import { onMounted, ref } from 'vue';
 
 
 const queryParams = ref<ISensorDataQuery>({
   page: 1,
   pageSize: 10,
-  filterBy: undefined,
+  filterBy: 'temperature',
   filterValue: undefined,
   sortBy: undefined,
   sortOrder: undefined,
-})
+});
 
-const sensorData = ref<ISensorData[]>([])
+const sensorData = ref<ISensorData[]>([]);
 
 onMounted(async () => {
-  await fetchData()
-})
+  await fetchData();
+});
 
 async function fetchData(pagination?: any, filters?: any, sorter?: any) {
   if (sorter) {
-    queryParams.value.sortBy = sorter.field
-    queryParams.value.sortOrder = sorter.order === 'ascend' ? 'ASC' : 'DESC'
+    queryParams.value.sortBy = sorter.field;
+    queryParams.value.sortOrder = sorter.order === 'ascend' ? 'ASC' : 'DESC';
   } else {
-    queryParams.value.sortBy = undefined
-    queryParams.value.sortOrder = undefined
+    queryParams.value.sortBy = undefined;
+    queryParams.value.sortOrder = undefined;
   }
 
   try {
     const res = await axios.get(apis.sensor.getAll, {
       params: queryParams.value,
-    })
-    console.log('sensorData', sensorData.value);
-    sensorData.value = res.data.sensors
+    });
+    sensorData.value = res.data.sensors;
 
   } catch (error) {
     notification.error({
       message: 'Lỗi',
       description: 'Không thể tải dữ liệu cảm biến',
-    })
+    });
   }
 
 }
 
 function handleReset() {
-  queryParams.value.page = 1
-  queryParams.value.pageSize = 10
-  queryParams.value.filterBy = undefined
-  queryParams.value.filterValue = undefined
-  queryParams.value.sortBy = undefined
-  queryParams.value.sortOrder = undefined
-  fetchData()
+  queryParams.value.page = 1;
+  queryParams.value.pageSize = 10;
+  queryParams.value.filterBy = 'temperature';
+  queryParams.value.filterValue = undefined;
+  queryParams.value.sortBy = undefined;
+  queryParams.value.sortOrder = undefined;
+  fetchData();
 }
 </script>
 

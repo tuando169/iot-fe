@@ -43,7 +43,7 @@
               </svg>
             </span>
             <a-switch v-model:checked="isLightOn" style="margin-bottom: 20px;"
-              @change="toggleDevice('light', !isLightOn)" />
+              @change="toggleDevice('light', isLightOn)" />
           </div>
           <div class="flex flex-col justify-center items-center rounded-2xl shadow-2xl bg-emerald-400">
             <span class="p-4">
@@ -52,7 +52,7 @@
                   d="M424-80q-51 0-77.5-30.5T320-180q0-26 11.5-50.5T367-271q22-14 36.5-37.5T425-373q-1 0-1-.5t-2-1.5l-116 41q-17 6-33 10t-33 4q-63 0-111.5-55T80-536q0-51 30.5-77.5T179-640q26 0 51 11.5t41 35.5q14 22 39.5 37.5T373-535q.67-1 1.33-2 .67-1 .67-2l-41-115q-6-17-10-33t-4-32q0-64 55-112.5T536-880q51 0 77.5 30.5T640-781q0 26-11.5 51T593-689q-26 17-40.5 45T536-586q1 1 1.5.5t1.5 1.5l115-43q17-6 32.5-9.5T719-640q81 0 121 67t40 149q0 51-32 77.5T777-320q-25 0-48.5-11.5T689-367q-14-22-37.5-36.5T587-426q-1 2-1.6 3.06-.6 1.06-1.4 1.94l42 115q6 16 10 30.5t4 30.5q1 65-54 115T424-80Zm56-340q25 0 42.5-17.5T540-480q0-25-17.5-42.5T480-540q-25 0-42.5 17.5T420-480q0 25 17.5 42.5T480-420Zm-58-165q12-5 26-9t28-6q8-45 29.5-81t54.5-58q10-7 15-17.5t5-24.5q0-16.42-10.5-27.71T536-820q-43 0-98.5 20.55-55.5 20.54-57.5 80.32 0 11.21 2.5 21.17T388-680l34 95ZM240-380q14 0 40-8l95-34q-8-14-11.5-28t-3.5-26q-45-8-81-29.5T221-560q-7-10-19-15t-23-5q-19 0-29 10.5T140-536q0 61.94 25.63 108.97Q191.25-380 240-380Zm184 240q53.13 0 104.57-23Q580-186 580-242q0-11-2-19t-6-19l-34-95q-13 6-26.5 10t-27.5 5q-8 45-29.5 81T400-221q-9 6-14.5 18.5T380-179q1 15 11 27t33 12Zm353-240q16.83 0 29.91-9.17Q820-398.33 820-424q0-44-20.5-99t-81.33-57q-11.17 0-20.67 2-9.5 2-17.5 5l-95 35q5 8 10 25.5t5 28.5q45 8 81 29.5t58 54.5q6 8 16.67 14 10.66 6 21.33 6ZM600-484ZM476-600ZM360-476Zm124 116Z" />
               </svg>
             </span>
-            <a-switch v-model:checked="isFanOn" style="margin-bottom: 20px;" @change="toggleDevice('fan', !isFanOn)" />
+            <a-switch v-model:checked="isFanOn" style="margin-bottom: 20px;" @change="toggleDevice('fan', isFanOn)" />
           </div>
           <div class="flex flex-col justify-center items-center rounded-2xl shadow-2xl bg-emerald-400">
             <span class="p-4">
@@ -62,7 +62,7 @@
               </svg>
             </span>
             <a-switch v-model:checked="isAirConditionerOn" style="margin-bottom: 20px;"
-              @change="toggleDevice('airConditioner', !isAirConditionerOn)" />
+              @change="toggleDevice('airConditioner', isAirConditionerOn)" />
           </div>
 
         </div>
@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue';
 
 import {
   CategoryScale,
@@ -84,28 +84,28 @@ import {
   Title,
   Tooltip,
   type ChartOptions,
-} from 'chart.js'
-import { Line } from 'vue-chartjs'
-import axios from 'axios'
-import { apis } from '@/common/apis'
-import type { ISensorData } from '@/common/types'
+} from 'chart.js';
+import { Line } from 'vue-chartjs';
+import axios from 'axios';
+import { apis } from '@/common/apis';
+import type { ISensorData, ISensorDataQuery } from '@/common/types';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 
 
-const isLightOn = ref(false)
-const isFanOn = ref(false)
-const isAirConditionerOn = ref(false)
+const isLightOn = ref(false);
+const isFanOn = ref(false);
+const isAirConditionerOn = ref(false);
 
-const sensorData = ref<ISensorData[]>([])
-const temperature = ref(30)
-const humidity = ref(50)
-const light = ref(1000)
+const sensorData = ref<ISensorData[]>([]);
+const temperature = ref(30);
+const humidity = ref(50);
+const light = ref(1000);
 
-const chartKey = ref(0)
+const chartKey = ref(0);
 const chartData = ref({
-  labels: [1, 2, 3, 4, 5, 6, 7],
+  labels: ['1'],
   datasets: [{
     label: 'Nhiệt độ',
     data: [50, 59, 80, 81, 56, 55, 40],
@@ -128,7 +128,7 @@ const chartData = ref({
     borderColor: '#ffb900',
     tension: 0.1,
   }],
-})
+});
 
 const options: ChartOptions<'line'> = {
   maintainAspectRatio: false,
@@ -139,58 +139,78 @@ const options: ChartOptions<'line'> = {
 
     },
   },
-}
+};
+
+const intervalId = ref<number>();
 
 onMounted(async () => {
-  await fetchSensorData()
-  await fetchDeviceStatus()
+  await fetchSensorData();
+  await fetchDeviceStatus();
 
+  intervalId.value =
+    setInterval(async () => {
+      await fetchSensorData();
+    }, 5000);
+});
 
-  setInterval(async () => {
-    await fetchSensorData()
-  }, 1000)
-})
-
+onUnmounted(() => {
+  // Clear the interval when the component is unmounted
+  clearInterval(intervalId.value);
+});
 
 async function fetchSensorData() {
+  const queryParams: ISensorDataQuery = {
+    page: 1,
+    pageSize: 10,
+    sortBy: 'time',
+    sortOrder: 'DESC',
+  };
   try {
-    const res = await axios.get(apis.sensor.getAll)
-    const data = await res.data.sensors
-    sensorData.value = data
-    temperature.value = data[0].temperature
-    humidity.value = data[0].humidity
-    light.value = data[0].light
+    const res = await axios.get(apis.sensor.getAll, {
+      params: queryParams,
+    });
+    const data = await res.data.sensors;
+    sensorData.value = data.sort((a: ISensorData, b: ISensorData) => {
+      return new Date(a.time).getTime() - new Date(b.time).getTime();
+    });;
+    temperature.value = sensorData.value[0].temperature;
+    humidity.value = sensorData.value[0].humidity;
+    light.value = sensorData.value[0].light;
 
-    chartData.value.labels = data.map((item: ISensorData) => item.time)
-    chartData.value.datasets[0].data = data.map((item: ISensorData) => item.temperature)
-    chartData.value.datasets[1].data = data.map((item: ISensorData) => item.humidity)
-    chartData.value.datasets[2].data = data.map((item: ISensorData) => item.light)
-    chartKey.value++
+    // Format time to HH:MM:SS
+    chartData.value.labels = sensorData.value.map((item: ISensorData) => new Date(item.time).toTimeString().split(' ')[0]);
+    chartData.value.datasets[0].data = sensorData.value.map((item: ISensorData) => item.temperature);
+    chartData.value.datasets[1].data = sensorData.value.map((item: ISensorData) => item.humidity);
+    chartData.value.datasets[2].data = sensorData.value.map((item: ISensorData) => item.light);
+    chartKey.value++;
 
   } catch (error) {
-    console.error('Error fetching sensor data:', error)
+    console.error('Error fetching sensor data:', error);
   }
 }
 
 async function fetchDeviceStatus() {
   try {
-    const res = await axios.get(apis.device.getStatus)
-    const data = await res.data
-    isLightOn.value = data.light
-    isFanOn.value = data.fan
-    isAirConditionerOn.value = data.airConditioner
+    const res = await axios.get(apis.device.getStatus);
+    const data = await res.data;
+    isLightOn.value = data.light;
+    isFanOn.value = data.fan;
+    isAirConditionerOn.value = data.airConditioner;
 
   } catch (error) {
-    console.error('Error fetching device status:', error)
+    console.error('Error fetching device status:', error);
   }
 }
 
 async function toggleDevice(device: string, status: boolean) {
   try {
-    await axios.post(apis.device.toggle, { device: status })
-    await fetchDeviceStatus()
+    await axios.post(apis.device.toggle, {
+      [device]: status,
+    });
+    fetchDeviceStatus();
+    await fetchDeviceStatus();
   } catch (error) {
-    console.error('Error changing device status:', error)
+    console.error('Error changing device status:', error);
   }
 }
 </script>
